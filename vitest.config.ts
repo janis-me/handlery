@@ -11,18 +11,6 @@ export default defineConfig({
           css: true,
         },
       },
-      {
-        test: {
-          name: 'browser',
-          include: ['./packages/**/*.browser.test.{ts,tsx}'],
-          browser: {
-            enabled: true,
-            headless: true,
-            provider: 'playwright',
-            instances: [{ browser: 'chromium' }],
-          },
-        },
-      },
     ],
     reporters: [['verbose', { summary: true }]],
     coverage: {

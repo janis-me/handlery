@@ -1,6 +1,23 @@
 {
   "name": "handlery",
   "version": "0.1.0",
+  "description": "Better event handling for ALL emitters",
+  "keywords": [
+    "event handler",
+    "emitter",
+    "event emitter",
+    "decorator"
+  ],
+  "homepage": "https://github.com/janis-me/handlery",
+  "bugs": {
+    "url": "https://github.com/janis-me/handlery/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janis-me/handlery.git"
+  },
+  "license": "MIT",
+  "author": "Janis Jansen",
   "type": "module",
   "imports": {
     "#*": [
@@ -12,22 +29,25 @@
   },
   "exports": {
     ".": {
-      "types": "./src/index.d.ts",
-      "default": "./src/index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./adapters": {
-      "types": "./src/adapters/index.d.ts",
-      "default": "./src/adapters/index.js"
+      "import": "./dist/adapters/index.js",
+      "types": "./dist/adapters/index.d.ts"
     }
   },
-  "main": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
+    "build": "tsdown",
     "format": "prettier . --write"
   },
   "devDependencies": {
     "@janis.me/linter-config": "workspace:*",
     "@janis.me/typescript-config": "workspace:*",
-    "emittery": "^1.1.0"
+    "emittery": "^1.1.0",
+    "tsdown": "^0.12.7"
   },
   "peerDependencies": {
     "emittery": "^1.1.0"
