@@ -1,84 +1,103 @@
-## `@janis.me/starter`
+# handlery - event handling for ALL emitters
 
-Repo template for my repositories. Based on pnpm workspaces, and includes default setup for:
-
-- [Github actions](https://github.com)
-- [PNPM catalogs](https://pnpm.io/catalogs)
-- [Testing (vitest/playwright)](https://vitest.dev/)
-- [Formatting (Prettier)](https://prettier.io/)
-- [Linting (ts-eslint)](https://typescript-eslint.io/)
-- [Typescript](https://www.typescriptlang.org/)
-- [Dependency management (taze)](https://github.com/antfu-collective/taze)
-
-By default, the following commands are available across the repo:
-
-- `pnpm deps` for updating dependencies with [Taze](https://github.com/antfu-collective/taze)
-- `pnpm format` to format all packages with prettier
-- `pnpm lint` for linting all packages (respects each packages overrides)
-- `pnpm test` to run all tests using `vitest`.
-
-## Github
-
-There are two workflows defined by default. First, when you open PRs or push to the branches `main` or `development`, all unit tests will run. Secondly, when pushing tags starting with `v` and a semantic version, all packages will be published (if configured and not private), and a changelog will be generated that's put into a new github release.
-
-For this to work, you need to set a `NPM_TOKEN` in your github env. The publish workflow uses a github environment called `propd`, but you can of course change that.
-
-## Testing
-
-The repo defines a default vitest workspace. This allows you to add test to every package without having to setup vitest again and again. It just works. The testing setup will look for `*.unit.test.ts` and `*.browser.test.ts` files and run them with the respective runner.
-
-## Formatting
-
-There is just a single prettier config defined at top-level. If you need to add exceptions/rules/plugins, add it there
-
-## Linting
-
-The linter config is defined in the `linter-config` package. This defines a `base-config` that can be used to extend others. For example, it already defines a `reactConfig`, that extends the default with some react-specific rules. The `linter-config` package also exports `eslint` and `tseslint` so you can easily override rules in each package.
-
-For example:
+`handlery` (like [`emittery`](https://github.com/sindresorhus/emittery) but for 'handle') is a minimal way to handle events with nice class decorators. It works with all kinds of event emitters and offers an API that works with all of them! Instead of
 
 ```ts
-import { reactConfig, tseslint, type ConfigArray } from '@janis.me/linter-config';
+function registerUserHandlers() {
+  const addListener = emitter.on('user.add', (user: UserAddEvent) => {
+    // ...
+  });
 
-const customConfig: ConfigArray = tseslint.config(...reactConfig, {
-  rules: {
-    'import/no-unresolved': [
-      'error',
-      // or whatever.
-    ],
-  },
-});
+  return () => {
+    addListener.unsubscribe();
+  };
 
-export default customConfig;
+  // ...
+}
+
+const unsubscribeUsers = registerUserHandlers();
 ```
 
-When running `pnpm lint`, it respects these overrides and will lint all packages using their own config. Thus, you should add a new `eslint.config.ts` file to each package. It can be as simple as
+you can simply do
 
 ```ts
-import { baseConfig } from '@janis.me/linter-config';
-
-export default baseConfig;
-```
-
-## Typescript
-
-The typescript config is exported from the `typescript-config` package. It has a `base` config and one for `react`.
-
-In both cases, you can extend those by creating a tsconfig file in one of the sub-packages and putting
-
-```json
-{
-  "extends": "@janis.me/typescript-config/base.json",
-  "compilerOptions": {
-    "types": ["node"]
-  },
-  "include": ["*.ts"]
+class UserHandler extends EventHandler {
+  @on('user.add')
+  public handleAddUser(user, ctx) {
+    // ...
+  }
 }
 ```
 
-or whatever you need.
+It requires typescript decorators support, and we're talking the ECMA stage 3 decorators, not `Decorators.Legacy` or whatever else you can set in tsconfig.
 
-## Dependency management
+## Installation
 
-You can run `pnpm deps` to automatically update all your dependencies. run `pnpm deps major` for major upgrades.
-This works with pnpm catalogs, sub-packages etc.
+It's on npm!
+
+```bash
+npm install handlery
+# or
+pnpm add handlery
+# or
+yarn add handlery
+```
+
+## Usage
+
+First, you need some event emitter. `handlery` works with emittery, the nodejs event emitter and many more. Let's use [`emittery`](https://github.com/sindresorhus/emittery) as an example.
+
+First, define some events. Event IDs can be strings, numbers or symbols
+
+```ts
+export type AppEvents = {
+  'user.add': { name: string };
+  'user.remove': { id: string };
+};
+
+const EMITTERY = new Emittery<AppEvents>();
+```
+
+then, use the exported function `emitteryHandler` and pass your `emittery` instance.
+
+```ts
+const { on, EventHandler } = emitteryHandler(EMITTERY);
+```
+
+The returned `Handlery` type has an `on` function and a class `EventHandler` that can be used to create your handler classes....
+
+...and that's it! Now you can use both to create your handlers:
+
+```ts
+export class UserHandler extends EventHandler {
+  @on('addUser')
+  public handleAddUser(data: AppEvents['addUser']) {
+    console.log('User created:', data.name);
+  }
+
+  @on('removeUser')
+  public handleRemoveUser(data: AppEvents['removeUser']) {
+    console.log('User removed with ID:', data.id);
+  }
+}
+```
+
+The listener functions are created right away, and start listening to events as soon as an instance of the UserHandler class is created (`new UserHandler()`)
+
+## Different emitter adapters
+
+The `emitteryHandler` function I showed you above is a wrapper around the `emittery adapter`, which can be imported from `handlery/adapters`. You could write the same thing as
+
+```ts
+import handlery from 'handlery';
+import { emitteryAdapter } from 'handlery/adapters';
+
+const EMITTERY = new Emittery<AppEvents>();
+
+const emitter = emitteryAdapter(EMITTERY);
+const { on, EventHandler } = handlery(emitter);
+```
+
+The purpose of the adapters is to take any form of event emitter and turn it into a simpler, handlery-compatible version. This is done to support all kinds of emitter typings, and different function signatures. For example, `emittery`'s `on` method can take an abort signal as part of an `options` parameter, returns an unsubscribe function and can be async. The nodejs `EventEmitter` `on` only has two arguments, returns the `EventEmitter` and is always synchronous.
+
+To ensure this library is 'emitter-agnostic', we ensure a single, easy-to-use format.
