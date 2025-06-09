@@ -1,8 +1,7 @@
 {
-  "name": "@janis.me/starter-example",
+  "name": "handlery",
   "version": "0.0.0",
   "private": true,
-  "type": "module",
   "imports": {
     "#*": [
       "./src/*",
@@ -13,10 +12,16 @@
   },
   "main": "src/index.ts",
   "scripts": {
+    "dev": "vite-node src/index.ts",
     "format": "prettier . --write"
+  },
+  "dependencies": {
+    "emittery": "^1.1.0",
+    "handlery": "workspace:^"
   },
   "devDependencies": {
     "@janis.me/linter-config": "workspace:*",
-    "@janis.me/typescript-config": "workspace:*"
+    "@janis.me/typescript-config": "workspace:*",
+    "vite-node": "^3.2.2"
   }
 }

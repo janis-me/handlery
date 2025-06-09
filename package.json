@@ -1,6 +1,6 @@
 {
-  "name": "@janis.me/repo-starter",
-  "description": "A starter template for pnpm-based web repositories",
+  "name": "@janis.me/handlery-repo",
+  "description": "Handlers for your emitters",
   "keywords": [
     "janis.me"
   ],
@@ -28,7 +28,7 @@
     "typescript": "catalog:build",
     "vitest": "catalog:test"
   },
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@10.12.1",
   "engines": {
     "node": ">=22.11.0"
   }
