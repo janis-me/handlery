@@ -1,6 +1,7 @@
 {
   "name": "handlery",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "private": false,
   "description": "Better event handling for ALL emitters",
   "keywords": [
     "event handler",
@@ -41,7 +42,9 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsdown",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "prepack": "pnpm -c exec ../scripts/prepack.sh",
+    "prepublishOnly": "pnpm install && pnpm build"
   },
   "devDependencies": {
     "@janis.me/linter-config": "workspace:*",
