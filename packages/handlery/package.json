@@ -1,6 +1,6 @@
 {
   "name": "handlery",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": false,
   "description": "Better event handling for ALL emitters",
   "keywords": [
@@ -40,6 +40,9 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsdown",
     "format": "prettier . --write",
