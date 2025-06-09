@@ -43,12 +43,6 @@ catalogs:
       specifier: ^19.1.0
       version: 19.1.0
   test:
-    '@playwright/test':
-      specifier: ^1.52.0
-      version: 1.52.0
-    '@vitest/browser':
-      specifier: ^3.2.2
-      version: 3.2.2
     vitest:
       specifier: ^3.2.2
       version: 3.2.2
@@ -70,12 +64,6 @@ importers:
       '@janis.me/typescript-config':
         specifier: workspace:*
         version: link:packages/typescript-config
-      '@playwright/test':
-        specifier: catalog:test
-        version: 1.52.0
-      '@vitest/browser':
-        specifier: catalog:test
-        version: 3.2.2(playwright@1.52.0)(vite@6.3.5(@types/node@22.15.30)(jiti@2.4.2)(yaml@2.8.0))(vitest@3.2.2)
       eslint:
         specifier: catalog:lint
         version: 9.28.0(jiti@2.4.2)
@@ -158,6 +146,8 @@ importers:
       typescript-eslint:
         specifier: catalog:lint
         version: 8.33.1(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3)
+
+  packages/scripts: {}
 
   packages/typescript-config: {}
 
@@ -473,11 +463,6 @@ packages:
   '@pkgr/core@0.2.7':
     resolution: {integrity: sha512-YLT9Zo3oNPJoBjBc4q8G2mjU4tqIbf5CEOORbUUr48dCD9q3umJ3IPlVqOqDakPfd2HuwccBaqlGhN4Gmr5OWg==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
-
-  '@playwright/test@1.52.0':
-    resolution: {integrity: sha512-uh6W7sb55hl7D6vsAeA+V2p5JnlAqzhqFyF0VcJkKZXkgnFcVG9PziERRHQfPLfNGx1C292a4JqbWzhR8L4R1g==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
@@ -2106,7 +2091,8 @@ snapshots:
     dependencies:
       '@babel/types': 7.27.6
 
-  '@babel/runtime@7.27.6': {}
+  '@babel/runtime@7.27.6':
+    optional: true
 
   '@babel/template@7.27.2':
     dependencies:
@@ -2332,11 +2318,8 @@ snapshots:
 
   '@pkgr/core@0.2.7': {}
 
-  '@playwright/test@1.52.0':
-    dependencies:
-      playwright: 1.52.0
-
-  '@polka/url@1.0.0-next.29': {}
+  '@polka/url@1.0.0-next.29':
+    optional: true
 
   '@quansync/fs@0.1.3':
     dependencies:
@@ -2452,17 +2435,20 @@ snapshots:
       dom-accessibility-api: 0.5.16
       lz-string: 1.5.0
       pretty-format: 27.5.1
+    optional: true
 
   '@testing-library/user-event@14.6.1(@testing-library/dom@10.4.0)':
     dependencies:
       '@testing-library/dom': 10.4.0
+    optional: true
 
   '@tybys/wasm-util@0.9.0':
     dependencies:
       tslib: 2.8.1
     optional: true
 
-  '@types/aria-query@5.0.4': {}
+  '@types/aria-query@5.0.4':
+    optional: true
 
   '@types/chai@5.2.2':
     dependencies:
@@ -2590,6 +2576,7 @@ snapshots:
       - msw
       - utf-8-validate
       - vite
+    optional: true
 
   '@vitest/expect@3.2.2':
     dependencies:
@@ -2645,13 +2632,15 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  ansi-regex@5.0.1: {}
+  ansi-regex@5.0.1:
+    optional: true
 
   ansi-styles@4.3.0:
     dependencies:
       color-convert: 2.0.1
 
-  ansi-styles@5.2.0: {}
+  ansi-styles@5.2.0:
+    optional: true
 
   ansis@4.1.0: {}
 
@@ -2660,6 +2649,7 @@ snapshots:
   aria-query@5.3.0:
     dependencies:
       dequal: 2.0.3
+    optional: true
 
   array-buffer-byte-length@1.0.2:
     dependencies:
@@ -2844,7 +2834,8 @@ snapshots:
 
   defu@6.1.4: {}
 
-  dequal@2.0.3: {}
+  dequal@2.0.3:
+    optional: true
 
   destr@2.0.5: {}
 
@@ -2858,7 +2849,8 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  dom-accessibility-api@0.5.16: {}
+  dom-accessibility-api@0.5.16:
+    optional: true
 
   dts-resolver@2.1.1: {}
 
@@ -3428,7 +3420,8 @@ snapshots:
 
   loupe@3.1.3: {}
 
-  lz-string@1.5.0: {}
+  lz-string@1.5.0:
+    optional: true
 
   magic-string@0.30.17:
     dependencies:
@@ -3453,7 +3446,8 @@ snapshots:
     dependencies:
       brace-expansion: 2.0.1
 
-  mrmime@2.0.1: {}
+  mrmime@2.0.1:
+    optional: true
 
   ms@2.1.3: {}
 
@@ -3554,13 +3548,15 @@ snapshots:
 
   picomatch@4.0.2: {}
 
-  playwright-core@1.52.0: {}
+  playwright-core@1.52.0:
+    optional: true
 
   playwright@1.52.0:
     dependencies:
       playwright-core: 1.52.0
     optionalDependencies:
       fsevents: 2.3.2
+    optional: true
 
   pnpm-workspace-yaml@0.3.1:
     dependencies:
@@ -3590,6 +3586,7 @@ snapshots:
       ansi-regex: 5.0.1
       ansi-styles: 5.2.0
       react-is: 17.0.2
+    optional: true
 
   prop-types@15.8.1:
     dependencies:
@@ -3605,7 +3602,8 @@ snapshots:
 
   react-is@16.13.1: {}
 
-  react-is@17.0.2: {}
+  react-is@17.0.2:
+    optional: true
 
   readdirp@4.1.2: {}
 
@@ -3801,6 +3799,7 @@ snapshots:
       '@polka/url': 1.0.0-next.29
       mrmime: 2.0.1
       totalist: 3.0.1
+    optional: true
 
   sort-object-keys@1.1.3: {}
 
@@ -3912,7 +3911,8 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
-  totalist@3.0.1: {}
+  totalist@3.0.1:
+    optional: true
 
   ts-api-utils@2.1.0(typescript@5.8.3):
     dependencies:
@@ -4144,7 +4144,8 @@ snapshots:
 
   word-wrap@1.2.5: {}
 
-  ws@8.18.2: {}
+  ws@8.18.2:
+    optional: true
 
   yaml@2.8.0: {}
 
