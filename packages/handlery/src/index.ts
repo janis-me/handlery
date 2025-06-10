@@ -1,4 +1,3 @@
-import { emitteryAdapter } from '#adapters/emittery.adapter';
 import { globals } from '#globals';
 import type { Emitter } from '#types/emitter.types';
 import type { Events } from '#types/event.types';
@@ -57,7 +56,3 @@ export default function handlery<TEvents extends Events>(emitter: Emitter<TEvent
 
   return { EventHandler, on: getOnDecorator<TEvents>() };
 }
-
-// adapter utility functions
-export const emitteryHandler = <TEvents extends Events>(...args: Parameters<typeof emitteryAdapter<TEvents>>) =>
-  handlery(emitteryAdapter(...args));

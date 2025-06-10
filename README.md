@@ -58,10 +58,11 @@ export type AppEvents = {
 const EMITTERY = new Emittery<AppEvents>();
 ```
 
-then, use the exported function `emitteryHandler` and pass your `emittery` instance.
+then, import the right adapter from `handlery/adapters`, in this case `emitteryAdapter` and pass your `emittery` instance. Pass the converted emitter to `handlery`
 
 ```ts
-const { on, EventHandler } = emitteryHandler(EMITTERY);
+const emitter = emitteryAdapter(EMITTERY);
+const { on, EventHandler } = handlery(emitter);
 ```
 
 The returned `Handlery` type has an `on` function and a class `EventHandler` that can be used to create your handler classes....
