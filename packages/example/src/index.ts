@@ -1,48 +1,33 @@
-import Emittery from 'emittery';
 import handlery from 'handlery';
-import { emitteryAdapter } from 'handlery/adapters';
+import { nodeAdapter } from 'handlery/adapters';
+import { EventEmitter } from 'node:events';
 
-/*
- * 1.: Create an emitter (like emittery)
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions --- this must be a type so typescript does not enforce 'string' index mapping
-export type AppEvents = {
-  addUser: { name: string };
-  removeUser: { id: string };
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type Events = {
+  testEvent1: [string];
+  testEvent2: [number, string];
 };
 
-const EMITTERY = new Emittery<AppEvents>();
+const eventEmitter = new EventEmitter<Events>();
+const adapter = nodeAdapter(eventEmitter);
+const { on, EventHandler } = handlery(adapter);
 
-/*
- * 2.: Pass the emitter to handlery to get a decorator and event handler class
- */
-const emitter = emitteryAdapter(EMITTERY);
-const { on, EventHandler } = handlery(emitter);
-
-/*
- * 3.: Define an event handler!
- */
-export class UserHandler extends EventHandler {
-  @on('addUser')
-  public handleAddUser(data: AppEvents['addUser']) {
-    console.log('Event received:', data.name);
+class TestHandler extends EventHandler {
+  @on('testEvent1')
+  public handleTestEvent1(data: [string]) {
+    console.log('Handled testEvent1:', data);
   }
 
-  @on('removeUser')
-  public handleRemoveUser(data: AppEvents['removeUser']) {
-    console.log('User removed with ID:', data.id);
+  @on('testEvent2')
+  public handleTestEvent2(data: [number, string]) {
+    console.log('Handled testEvent2:', data);
   }
 }
 
-/*
- * 4: The events are registered when an instance of the handler is created.
- * Do that and then emit some events!
- */
-export async function start() {
-  new UserHandler();
+new TestHandler();
 
-  await EMITTERY.emit('addUser', { name: 'John Doe' });
-  await EMITTERY.emit('removeUser', { id: '12345' });
-}
-
-await start();
+const testData1 = ['Hello, world!'] as const;
+const testData2 = [42, 'The answer to life, the universe, and everything'] as const;
+eventEmitter.emit('testEvent1', ...testData1);
+eventEmitter.emit('testEvent2', ...testData2);
+console.log('Events emitted successfully.');
