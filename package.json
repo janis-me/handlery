@@ -20,6 +20,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm --filter handlery build",
+    "build:docs": "pnpm --filter ./packages/docs build",
     "deps": "pnpm taze",
     "format": "prettier --write .",
     "lint": "eslint --flag unstable_config_lookup_from_file .",

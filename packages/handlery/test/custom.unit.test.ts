@@ -15,17 +15,29 @@ describe('Custom', () => {
       return undefined;
     }
   });
+  const onceHandler = vi.fn((eventName: PropertyKey | PropertyKey[], listener: (data: unknown) => void) => {
+    const off = onHandler(eventName, (data: unknown) => {
+      listener(data);
+      offHandler(eventName, listener);
+      return undefined;
+    });
+    return () => {
+      off();
+      return undefined;
+    };
+  });
 
   const customEmitter = {
     on: onHandler,
     off: offHandler,
-    emit: vi.fn((eventName: string, data: unknown) => {
+    emit: vi.fn((eventName: PropertyKey, data: unknown) => {
       const listener = listeners.get(eventName);
       if (listener) {
         listener(data);
       }
       return undefined;
     }),
+    once: onceHandler,
   };
 
   it('should import handlery', async () => {
