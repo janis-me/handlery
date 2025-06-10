@@ -8,7 +8,7 @@ At it's core, `handlery` allows you to write event handler classes like this:
 @subscribe()
 class UserHandler extends EventHandler {
   @on('user.add')
-  public handleUserEvent1(data: UserAddEvent, context: ) {
+  public handleUserEvent1(data: UserAddEvent) {
     // ...
   }
 
