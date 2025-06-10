@@ -5,7 +5,7 @@ catalogs:
   build:
     typescript: ^5.8.3
     vite: ^6.3.5
-    'sass': ^1.87.0
+    sass: ^1.87.0
   format:
     '@ianvs/prettier-plugin-sort-imports': ^4.4.2
     prettier-plugin-packagejson: ^2.5.15
@@ -26,4 +26,5 @@ catalogs:
     taze: ^19.1.0
 
 ignoredBuiltDependencies:
+  - '@parcel/watcher'
   - esbuild
