@@ -7,4 +7,10 @@ export interface Emitter<TEvents extends Events<EventKey, 'record' | 'array'> = 
     event: K | K[],
     listener: (data: TEvents[K]) => void | Promise<void>,
   ): UnsubscribeFunction;
+  off<K extends keyof TEvents>(event: K | K[], listener: (data: TEvents[K]) => void | Promise<void>): void;
+  once<K extends keyof TEvents>(
+    event: K | K[],
+    listener: (data: TEvents[K]) => void | Promise<void>,
+  ): UnsubscribeFunction;
+  emit<K extends keyof TEvents>(event: K, data: TEvents[K]): void | Promise<void>;
 }
