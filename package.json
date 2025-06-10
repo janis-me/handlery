@@ -1,10 +1,20 @@
 {
   "name": "@janis.me/handlery-repo",
-  "description": "Handlers for your emitters",
+  "description": "Better event handling for ALL emitters",
   "keywords": [
-    "janis.me"
+    "event handler",
+    "emitter",
+    "event emitter",
+    "decorator"
   ],
-  "homepage": "https://janis.me",
+  "homepage": "https://github.com/janis-me/handlery",
+  "bugs": {
+    "url": "https://github.com/janis-me/handlery/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janis-me/handlery.git"
+  },
   "license": "MIT",
   "author": "Janis Jansen",
   "type": "module",

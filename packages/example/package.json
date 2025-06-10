@@ -22,6 +22,7 @@
   "devDependencies": {
     "@janis.me/linter-config": "workspace:*",
     "@janis.me/typescript-config": "workspace:*",
+    "@types/node": "^24.0.0",
     "vite-node": "^3.2.2"
   }
 }
