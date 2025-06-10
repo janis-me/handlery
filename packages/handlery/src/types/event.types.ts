@@ -5,7 +5,7 @@ export type Events<
   TArgType extends 'record' | 'array' = 'record',
 > = TArgType extends 'record' ? Record<TKey, unknown> : Record<TKey, unknown[]>;
 
-export interface EventListener<T extends keyof Events = keyof Events> {
-  event: T;
-  callback: (data: Events[T]) => void;
+export interface EventListener<TEvents extends Events, TKey extends keyof TEvents> {
+  event: TKey;
+  callback: (data: TEvents[TKey]) => void;
 }

@@ -21,6 +21,7 @@ const unsubscribeUsers = registerUserHandlers();
 you can simply do
 
 ```ts
+@subscribe()
 class UserHandler extends EventHandler {
   @on('user.add')
   public handleAddUser(user: Events['user.add'], ctx) {
@@ -62,14 +63,13 @@ then, import the right adapter from `handlery/adapters`, in this case `emitteryA
 
 ```ts
 const emitter = emitteryAdapter(EMITTERY);
-const { on, EventHandler } = handlery(emitter);
+const { on, subscribe, EventHandler } = handlery(emitter);
 ```
 
-The returned `Handlery` type has an `on` function and a class `EventHandler` that can be used to create your handler classes....
-
-...and that's it! Now you can use both to create your handlers:
+The returned `Handlery` type has the functions `on`, `subscribe` and a class `EventHandler` that can be used to create your handler classes:
 
 ```ts
+@subscribe()
 export class UserHandler extends EventHandler {
   @on('user.add')
   public handleAddUser(data: AppEvents['user.add']) {
@@ -83,7 +83,16 @@ export class UserHandler extends EventHandler {
 }
 ```
 
-The listener functions are created right away, and start listening to events as soon as an instance of the UserHandler class is created (`new UserHandler()`)
+The listener functions are created right away, and start listening instantly due to the `subscribe` decorator on the class. If you leave that subscribe decorator away, you can always register and subscribe the class later with
+
+```ts
+UserHandler.register();
+// or
+UserHandler.subscribe();
+```
+
+The difference between those is that `register` creates an instance of the class and `subscribe` actually starts listening to events.
+If you use the `@subscribe()` decorator, the handler class will be registered and subscribed right away. Of course, you can also call `UserHandler.unsubscribe()` later on.
 
 ## Different emitter adapters
 

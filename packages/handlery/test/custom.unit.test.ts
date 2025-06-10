@@ -9,9 +9,16 @@ describe('Custom', () => {
       return undefined;
     };
   });
+  const offHandler = vi.fn((eventName: PropertyKey | PropertyKey[], _: (data: unknown) => void) => {
+    if (listeners.has(eventName)) {
+      listeners.delete(eventName);
+      return undefined;
+    }
+  });
 
   const customEmitter = {
     on: onHandler,
+    off: offHandler,
     emit: vi.fn((eventName: string, data: unknown) => {
       const listener = listeners.get(eventName);
       if (listener) {
@@ -47,7 +54,8 @@ describe('Custom', () => {
       }
     }
 
-    new TestHandler();
+    TestHandler.register();
+    EventHandler.subscribeAll();
 
     const testData = { message: 'Hello, world!' };
     customEmitter.emit('testEvent', testData);

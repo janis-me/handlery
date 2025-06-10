@@ -46,7 +46,8 @@ describe('Emittery', () => {
       }
     }
 
-    new TestHandler();
+    TestHandler.register();
+    EventHandler.subscribeAll();
 
     const testData = { message: 'Hello, world!' };
     await EMITTERY.emit('testEvent', testData);

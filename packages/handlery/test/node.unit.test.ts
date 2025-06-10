@@ -42,7 +42,8 @@ describe('Node EventEmitter', () => {
       }
     }
 
-    new TestHandler();
+    TestHandler.register();
+    EventHandler.subscribeAll();
 
     const testData = { message: 'Hello, world!' };
     eventEmitter.emit('testEvent1', testData.message);
@@ -74,7 +75,8 @@ describe('Node EventEmitter', () => {
       }
     }
 
-    new TestHandler();
+    TestHandler.register();
+    EventHandler.subscribeAll();
 
     const testData = { number: 42, message: 'Hello, world!' };
     eventEmitter.emit('testEvent2', testData.number, testData.message);
