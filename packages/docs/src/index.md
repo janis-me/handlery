@@ -7,8 +7,11 @@ titleTemplate: Type-save event handling for ALL emitters
 
 hero:
   name: 'handlery'
-  text: Type-save event handling for ALL emitters
+  text: event handling... like it should be
   tagline: Add class-based, decorator-powered and fully typed event handlers to your [nodejs, emittery, web...] app!
+  image:
+    src: /handlery-ghost-logo.png
+    alt: Themed Logo
   actions:
     - theme: brand
       text: Learn how!
@@ -34,32 +37,46 @@ features:
 
 ---
 
-`handlery` (like [`emittery`](https://github.com/sindresorhus/emittery) but for 'handle') is a minimal way to handle events with nice class decorators. It works with all kinds of event emitters (emittery, nodejs' `EventEmitter`...) out of the box! So instead of writing
+<p align="center" width="100%" style="display: flex; justify-content: center; gap: 16px">
+  <a href="https://handlery.dev">
+    <img src="https://img.shields.io/badge/Documentation-online-blue" alt="build status">
+  </a>
+  <a href="https://app.netlify.com/sites/handlery/deploys">
+    <img alt="docs deployment" src="https://img.shields.io/netlify/c3cdf58b-607b-46d3-8bb5-ac3d94070850?style=flat&logo=netlify&label=docs">
+  </a>
+  <a href="https://github.com/janis-me/handlery/deployments">
+    <img alt="GitHub deployments" src="https://img.shields.io/github/deployments/janis-me/handlery/prod?logo=github&label=build">
+  </a>
+  <a href="https://npmjs.com/package/handlery">
+    <img alt="handlery on npm" src="https://img.shields.io/npm/v/handlery?label=npm&labelColor=orange&color=grey">
+  </a>
+</p>
+
+---
+
+`handlery` (like [`emittery`](https://github.com/sindresorhus/emittery) but for 'handle') is a super clean and easy way to handle any kind of events with class-based handlers (and decorators!). It works with all kinds of event emitters (emittery, nodejs' `EventEmitter`...) out of the box! Just look at it:
 
 ```ts
-function registerUserHandlers() {
-  const addListener = emitter.on('user.add', (user: UserAddEvent) => {
-    // ...
-  });
-
-  return () => {
-    addListener.unsubscribe();
-  };
-
-  // ...
-}
-
-const unsubscribeUsers = registerUserHandlers();
-```
-
-you can simply do
-
-```ts
-@subscribe()
+@register()
 class UserHandler extends EventHandler {
   @on('user.add')
-  public handleAddUser(user: UserAddEvent, ctx: HandlerContext) {
+  public handleAddUser(user: Events['user.add'], ctx: HandlerContext) {
+    ctx.emitter.emit('user.add.response', { ... })
     // ...
   }
 }
+```
+
+It requires typescript decorators support (modern, ECMA decorators. Not `Decorators.Legacy` etc.) And an event emitter like [`emittery`](https://github.com/sindresorhus/emittery) or node's built-in [`EventEmitter`](https://nodejs.org/api/events.html).
+
+## Installation
+
+It's on npm!
+
+```bash
+npm install handlery
+# or
+pnpm add handlery
+# or
+yarn add handlery
 ```

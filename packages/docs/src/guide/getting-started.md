@@ -1,8 +1,6 @@
 # Getting started
 
-## quick `handlery` introduction
-
-At it's core, `handlery` allows you to write event handler classes like this:
+Straight to the point: `handlery` allows you to write event handler classes like this:
 
 ```ts
 @subscribe()

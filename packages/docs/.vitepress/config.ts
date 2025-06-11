@@ -5,9 +5,12 @@ import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-i
 export default defineConfig({
   title: 'handlery',
   srcDir: 'src',
+  head: [['link', { rel: 'icon', href: '/favicon.png' }]],
   description: 'Type-save event handling for ALL emitters!',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    logo: '/handlery-logo.png',
+    siteTitle: false,
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/getting-started' },
@@ -29,6 +32,10 @@ export default defineConfig({
           { text: 'Adapters', link: '/reference/adapters' },
           { text: 'Context', link: '/reference/context' },
         ],
+      },
+      {
+        text: 'FAQ',
+        link: '/faq',
       },
     ],
 
