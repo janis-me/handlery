@@ -1,36 +1,41 @@
-# handlery - event handling for ALL emitters
+<p align="center">
+  <a href="https://github.com/janis-me/themed" target="_blank" rel="noopener noreferrer">
+    <img height="150px" src="./handlery-logo.png" alt="Themed logo">
+  </a>
+</p>
+<p align="center" style="font-size: 1.5rem;">
+  <b>handlery</b>: typed event handling like it should be.
+</p>
+<p align="center">
+  <a href="https://handlery.dev">
+    <img src="https://img.shields.io/badge/Documentation-online-blue" alt="build status">
+  </a>
+  <a href="https://app.netlify.com/sites/handlery/deploys">
+    <img alt="docs deployment" src="https://img.shields.io/netlify/c3cdf58b-607b-46d3-8bb5-ac3d94070850?style=flat&logo=netlify&label=docs">
+  </a>
+  <a href="https://github.com/janis-me/handlery/deployments">
+    <img alt="GitHub deployments" src="https://img.shields.io/github/deployments/janis-me/handlery/prod?logo=github&label=build">
+  </a>
+  <a href="https://npmjs.com/package/handlery">
+    <img alt="handlery on npm" src="https://img.shields.io/npm/v/handlery?label=npm&labelColor=orange&color=grey">
+  </a>
+</p>
+<br/>
 
-`handlery` (like [`emittery`](https://github.com/sindresorhus/emittery) but for 'handle') is a minimal way to handle events with nice class decorators. It works with all kinds of event emitters (emittery, nodejs' `EventEmitter`...) out of the box! So instead of writing
+`handlery` (like [`emittery`](https://github.com/sindresorhus/emittery) but for 'handle') is a super clean and easy way to handle any kind of events with class-based handlers (and decorators!). It works with all kinds of event emitters (emittery, nodejs' `EventEmitter`...) out of the box! Just look at it:
 
 ```ts
-function registerUserHandlers() {
-  const addListener = emitter.on('user.add', (user: UserAddEvent) => {
-    // ...
-  });
-
-  return () => {
-    addListener.unsubscribe();
-  };
-
-  // ...
-}
-
-const unsubscribeUsers = registerUserHandlers();
-```
-
-you can simply do
-
-```ts
-@subscribe()
+@register()
 class UserHandler extends EventHandler {
   @on('user.add')
-  public handleAddUser(user: Events['user.add'], ctx) {
+  public handleAddUser(user: Events['user.add'], ctx: HandlerContext) {
+    ctx.emitter.emit('user.add.response', { ... })
     // ...
   }
 }
 ```
 
-It requires typescript decorators support (the ECMA stage 3 decorators, not `Decorators.Legacy` or whatever else you can set in tsconfig).
+It requires typescript decorators support (modern, ECMA decorators. Not `Decorators.Legacy` etc.) And an event emitter like [`emittery`](https://github.com/sindresorhus/emittery) or node's built-in [`EventEmitter`](https://nodejs.org/api/events.html).
 
 ## Installation
 
@@ -45,6 +50,8 @@ yarn add handlery
 ```
 
 ## Usage
+
+**(Check out our [docs](https://handlery.dev))**
 
 First, you need some event emitter. `handlery` works with emittery, the nodejs event emitter and many more. Let's use [`emittery`](https://github.com/sindresorhus/emittery) as an example.
 
