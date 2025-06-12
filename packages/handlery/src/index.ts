@@ -1,6 +1,6 @@
+import type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/decorator.types';
 import type { Emitter } from '#types/emitter.types';
 import type { EventListener, Events } from '#types/event.types';
-import { EventHandlerContext } from '#types/handler.types';
 
 export type { Emitter } from '#types/emitter.types';
 export type { EventHandlerContext } from '#types/handler.types';
@@ -123,73 +123,118 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<TEvents>)
   return EventHandler;
 }
 
-type EventHandler<TEvents extends Events> = ReturnType<typeof getEventHandlerClass<TEvents>>;
-
-export type OnDecorator<TEvents extends Events, TEvent extends keyof TEvents> = (
-  eventName: TEvent,
-) => <T extends EventHandler<TEvents>>(
-  _: (data: TEvents[TEvent], context: EventHandlerContext<TEvent>) => unknown,
-  context: ClassMethodDecoratorContext<
-    InstanceType<T>,
-    (data: TEvents[TEvent], context: EventHandlerContext<TEvent>) => unknown
-  >,
-) => void;
-
-export type RegisterDecorator<TEvents extends Events> = () => <T extends EventHandler<TEvents>>(
-  target: T,
-  context: ClassDecoratorContext<abstract new () => T>,
-) => T;
-
-export type SubscribeDecorator<TEvents extends Events> = () => (
-  target: EventHandler<TEvents>,
-  _context: ClassDecoratorContext,
-) => EventHandler<TEvents>;
+/**
+ * The `EventHandlerImpl` type exists only to prevent the compiler from showing the 'raw' return type of the `getEventHandlerClass` function.
+ * It is used to create a more user-friendly type for the `EventHandler` class.
+ */
+export type EventHandlerImpl<TEvents extends Events> = ReturnType<typeof getEventHandlerClass<TEvents>>;
+export type EventHandler<TEvents extends Events> = EventHandlerImpl<TEvents>;
 
 export interface Handlery<TEvents extends Events> {
+  /**
+   * Type representing an EventHandler class that is based on the provided emitter.
+   * `extend` it to create your own EventHandler classes!
+   */
   EventHandler: EventHandler<TEvents>;
-  on: OnDecorator<TEvents, keyof TEvents>;
+  /**
+   * Decorator type for handling events.
+   * It allows you to define a method that will be called when the specified event is emitted.
+   *
+   * @example
+   *
+   * ```typescript
+   * \@register()
+   * class MyEventHandler extends EventHandler {
+   *   \@on('myEvent')
+   *   myEventHandler(data: MyEventData, context: EventHandlerContext<'myEvent'>) {
+   *     // ...
+   *   }
+   * }
+   * ```
+   */
+  on: OnDecorator<TEvents>;
+  /**
+   * Decorator type for registering an EventHandler class.
+   * `Registering` means creating an instance of the class and storing it in `EventHandler`.
+   * Later, you can subscribe/unsubscribe the instance easily.
+   *
+   * As an alternative to `@register`, you can also use `@subscribe` to automatically register and subscribe the instance.
+   */
   register: RegisterDecorator<TEvents>;
+  /**
+   * Decorator type for subscribing an EventHandler class.
+   * This decorator registers the class and subscribes all handlers to their respective events.
+   *
+   * This is a shorthand for `@register` followed by calls to `.subscribe()`.
+   */
   subscribe: SubscribeDecorator<TEvents>;
 }
 
+/**
+ * The main function that creates a typed `EventHandler` class and typed class decorators for handling events.
+ * This returns a `Handlery` object that you can easily deconstruct to get everything you need
+ *
+ * @param emitter The handlery-typed emitter that the `EventHandler` class will use to listen to events. Use adapters to create one for your emitter.
+ * @returns A `Handlery<TEvents>` object that provides the `EventHandler` class and decorators for handling events.
+ *
+ * @example
+ * ```typescript
+ * import handlery, { EventHandlerContext } from 'handlery';
+ * import { nodeAdapter } from 'handlery/adapters';
+ * import { EventEmitter } from 'node:events';
+ *
+ * type Events = {
+ *   userEvent1: [string];
+ *   userEvent2: [number, string];
+ * }
+ *
+ * const eventEmitter = new EventEmitter<Events>();
+ * const { on, register, subscribe, EventHandler } = handlery(nodeAdapter(eventEmitter));
+ *
+ * \@register()
+ * \@subscribe()
+ * class UserHandler extends EventHandler {
+ *   \@on('userEvent1')
+ *   public handleUserEvent1(data: [string]) {
+ *     console.log('Handled userEvent1:', data);
+ *   }
+ *   \@on('userEvent2')
+ *   public handleUserEvent2(data: [number, string]) {
+ *     console.log('Handled userEvent2:', data);
+ *   }
+ *}
+ */
 export default function handlery<TEvents extends Events>(emitter: Emitter<TEvents>): Handlery<TEvents> {
-  const EventHandlerImpl = getEventHandlerClass<TEvents>(emitter);
+  const EventHandler = getEventHandlerClass<TEvents>(emitter);
 
-  function on<K extends keyof TEvents>(eventName: K) {
-    type EventHandlerMethod = (data: TEvents[K], context: EventHandlerContext<K>) => unknown;
-
-    return function <T extends EventHandler<TEvents>>(
-      method: EventHandlerMethod,
-      context: ClassMethodDecoratorContext<InstanceType<T>, EventHandlerMethod>,
-    ) {
-      context.addInitializer(function (this: InstanceType<T>) {
-        this.registerEvent(eventName, ((data: TEvents[K]) => {
-          const ctx: EventHandlerContext<K> = {
+  const on: OnDecorator<TEvents> = eventName => {
+    return function (method, context) {
+      context.addInitializer(function (this) {
+        this.registerEvent(eventName, (data: TEvents[typeof eventName]) => {
+          method(data, {
             event: {
               name: eventName,
               data: data,
             },
-            emitter: EventHandlerImpl._emitter,
-          };
-
-          method(data, ctx);
-        }) as (data: Events[K]) => void);
+            emitter: EventHandler._emitter,
+          });
+        });
       });
     };
-  }
+  };
 
-  function register() {
-    return function <T extends EventHandler<TEvents>>(target: T, _context: ClassDecoratorContext) {
+  const register: RegisterDecorator<TEvents> = () => {
+    return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass
       target.register();
 
       return target;
     };
-  }
+  };
 
-  function subscribe() {
-    return function <T extends EventHandler<TEvents>>(target: T, _context: ClassDecoratorContext) {
+  const subscribe: SubscribeDecorator<TEvents> = () => {
+    return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass
       const instance = target.register();
@@ -197,7 +242,7 @@ export default function handlery<TEvents extends Events>(emitter: Emitter<TEvent
 
       return target;
     };
-  }
+  };
 
-  return { EventHandler: EventHandlerImpl, on, register, subscribe };
+  return { EventHandler, on, register, subscribe };
 }
