@@ -7,8 +7,8 @@ titleTemplate: Type-save event handling for ALL emitters
 
 hero:
   name: 'handlery'
-  text: event handling... like it should be
-  tagline: Add class-based, decorator-powered and fully typed event handlers to your [nodejs, emittery, web...] app!
+  text: event handling like it should be!
+  tagline: Add decorator-powered, class-based and fully typed event handlers to your [nodejs, emittery, web... everything] app!
   image:
     src: /handlery-ghost-logo.png
     alt: handlery Logo
@@ -26,13 +26,16 @@ hero:
 features:
   - title: Type-Safe
     icon: 🔒
-    details: All types are inferred from your event emitter and can always be extended!
+    details: All types are inferred from your event emitter and can always be extended! Automatically!
   - title: Tiny
     icon: 📦
-    details: Just a class and some (optional) decorator functions. Super simple
+    details: Just a class and some (optional) decorator functions. Super simple, super fast.
   - title: Feature-rich
     icon: 🚀
-    details: Supports all kinds of patterns, automatic unsubscribe, pre-registering, multiple event emitter libraries etc.
+    details: Supports all kinds of patterns, automatic unsubscribe, pre-registering, multiple event emitters/libraries etc.
+  - title: Well tested
+    icon: ✅
+    details: Unit-tested, checked with many <a href="https://github.com/janis-me/handlery/tree/main/examples/simple/src">examples</a> and used in production
 ---
 
 ---
