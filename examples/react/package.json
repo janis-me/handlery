@@ -1,0 +1,33 @@
+{
+  "name": "@janis.me/handlery-example-react",
+  "version": "0.0.0",
+  "private": true,
+  "imports": {
+    "#*": [
+      "./src/*",
+      "./src/*.ts",
+      "./src/*.tsx",
+      "./src/*/index.ts"
+    ]
+  },
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "vite",
+    "format": "prettier . --write"
+  },
+  "dependencies": {
+    "emittery": "catalog:frontend",
+    "handlery": "workspace:^"
+  },
+  "devDependencies": {
+    "@janis.me/linter-config": "workspace:*",
+    "@janis.me/typescript-config": "workspace:*",
+    "@types/node": "catalog:types",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types",
+    "@vitejs/plugin-react": "catalog:build",
+    "react": "catalog:frontend",
+    "react-dom": "catalog:frontend",
+    "vite": "catalog:build"
+  }
+}

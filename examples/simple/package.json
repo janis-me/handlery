@@ -1,5 +1,5 @@
 {
-  "name": "handlery",
+  "name": "@janis.me/handlery-examples",
   "version": "0.0.0",
   "private": true,
   "imports": {
@@ -12,17 +12,20 @@
   },
   "main": "src/index.ts",
   "scripts": {
-    "dev": "vite-node src/index.ts",
     "format": "prettier . --write"
   },
   "dependencies": {
-    "emittery": "^1.1.0",
+    "emittery": "catalog:frontend",
     "handlery": "workspace:^"
   },
   "devDependencies": {
     "@janis.me/linter-config": "workspace:*",
     "@janis.me/typescript-config": "workspace:*",
-    "@types/node": "^24.0.0",
-    "vite-node": "^3.2.2"
+    "@types/node": "catalog:types",
+    "@types/react": "catalog:types",
+    "@types/react-dom": "catalog:types",
+    "react": "catalog:frontend",
+    "react-dom": "catalog:frontend",
+    "vite-node": "catalog:script"
   }
 }
