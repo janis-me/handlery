@@ -11,7 +11,7 @@ hero:
   tagline: Add class-based, decorator-powered and fully typed event handlers to your [nodejs, emittery, web...] app!
   image:
     src: /handlery-ghost-logo.png
-    alt: Themed Logo
+    alt: handlery Logo
   actions:
     - theme: brand
       text: Learn how!

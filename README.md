@@ -1,6 +1,6 @@
 <p align="center">
-  <a href="https://github.com/janis-me/themed" target="_blank" rel="noopener noreferrer">
-    <img width="220px" src="./handlery-logo.png" alt="Themed logo">
+  <a href="https://github.com/janis-me/handlery" target="_blank" rel="noopener noreferrer">
+    <img width="220px" src="./handlery-logo.png" alt="handlery logo">
   </a>
 </p>
 <p align="center" style="font-size: 1.5rem;">
