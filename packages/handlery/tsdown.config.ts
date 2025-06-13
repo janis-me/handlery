@@ -5,4 +5,5 @@ export default defineConfig({
   dts: true,
   minify: true,
   format: 'esm',
+  platform: 'neutral',
 });

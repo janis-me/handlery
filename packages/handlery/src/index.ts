@@ -1,6 +1,8 @@
+import { HandleryConfig } from '#types/config.types';
 import type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/decorator.types';
 import type { Emitter } from '#types/emitter.types';
 import type { EventListener, Events } from '#types/event.types';
+import type { EventHandlerContextExtraFunction } from '#types/handler.types';
 
 export type { Emitter } from '#types/emitter.types';
 export type { EventHandlerContext } from '#types/handler.types';
@@ -14,10 +16,14 @@ export type { EventHandlerContext } from '#types/handler.types';
  * @param emitter The handlery-typed emitter
  * @returns `EventHandler` base class
  */
-function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<TEvents>) {
+function getEventHandlerClass<
+  TEvents extends Events,
+  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
+>(emitter: Emitter<TEvents>, config?: HandleryConfig<TEvents, TConfigExtraFunction>) {
   class EventHandler {
     public static _emitter: Emitter<TEvents> = emitter;
     public static _instances = new Map<new () => EventHandler, EventHandler>();
+    public static _config: HandleryConfig<TEvents, TConfigExtraFunction> = config ?? {};
 
     public _listeners: Array<EventListener<TEvents, keyof TEvents>> = [];
 
@@ -95,6 +101,20 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<TEvents>)
       instance._unsubscribeInstance();
     }
 
+    public _registerEvent<T extends keyof TEvents>(event: T, callback: (data: TEvents[T]) => void) {
+      // Ensure the listener is not already registered
+      if (this._listeners.some(listener => listener.event === event && listener.callback === callback)) {
+        return;
+      }
+
+      this.registerEvent(event, callback);
+    }
+
+    public _subscribeListener<T extends keyof TEvents>(event: T, callback: (data: TEvents[T]) => void) {
+      this._registerEvent(event, callback);
+      this._subscribeInstance();
+    }
+
     /**
      * Subscribe all registered events of the current instance to listen to events.
      *
@@ -102,6 +122,9 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<TEvents>)
      * Instead of this, use the `subscribe` static method on the subclass, as it ensures the instance is registered first.
      */
     public _subscribeInstance() {
+      // Ensure nothing is registered twice
+      this._unsubscribeInstance();
+
       for (const listener of this._listeners) {
         EventHandler._emitter.on(listener.event, listener.callback);
       }
@@ -127,15 +150,24 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<TEvents>)
  * The `EventHandlerImpl` type exists only to prevent the compiler from showing the 'raw' return type of the `getEventHandlerClass` function.
  * It is used to create a more user-friendly type for the `EventHandler` class.
  */
-export type EventHandlerImpl<TEvents extends Events> = ReturnType<typeof getEventHandlerClass<TEvents>>;
-export type EventHandler<TEvents extends Events> = EventHandlerImpl<TEvents>;
+export type EventHandlerImpl<
+  TEvents extends Events,
+  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
+> = ReturnType<typeof getEventHandlerClass<TEvents, TConfigExtraFunction>>;
+export type EventHandler<
+  TEvents extends Events,
+  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
+> = EventHandlerImpl<TEvents, TConfigExtraFunction>;
 
-export interface Handlery<TEvents extends Events> {
+export interface Handlery<
+  TEvents extends Events,
+  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
+> {
   /**
    * Type representing an EventHandler class that is based on the provided emitter.
    * `extend` it to create your own EventHandler classes!
    */
-  EventHandler: EventHandler<TEvents>;
+  EventHandler: EventHandler<TEvents, TConfigExtraFunction>;
   /**
    * Decorator type for handling events.
    * It allows you to define a method that will be called when the specified event is emitted.
@@ -152,7 +184,7 @@ export interface Handlery<TEvents extends Events> {
    * }
    * ```
    */
-  on: OnDecorator<TEvents>;
+  on: OnDecorator<TEvents, TConfigExtraFunction>;
   /**
    * Decorator type for registering an EventHandler class.
    * `Registering` means creating an instance of the class and storing it in `EventHandler`.
@@ -160,14 +192,14 @@ export interface Handlery<TEvents extends Events> {
    *
    * As an alternative to `@register`, you can also use `@subscribe` to automatically register and subscribe the instance.
    */
-  register: RegisterDecorator<TEvents>;
+  register: RegisterDecorator<TEvents, TConfigExtraFunction>;
   /**
    * Decorator type for subscribing an EventHandler class.
    * This decorator registers the class and subscribes all handlers to their respective events.
    *
    * This is a shorthand for `@register` followed by calls to `.subscribe()`.
    */
-  subscribe: SubscribeDecorator<TEvents>;
+  subscribe: SubscribeDecorator<TEvents, TConfigExtraFunction>;
 }
 
 /**
@@ -204,26 +236,43 @@ export interface Handlery<TEvents extends Events> {
  *   }
  *}
  */
-export default function handlery<TEvents extends Events>(emitter: Emitter<TEvents>): Handlery<TEvents> {
-  const EventHandler = getEventHandlerClass<TEvents>(emitter);
+export default function handlery<
+  TEvents extends Events,
+  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
+>(
+  emitter: Emitter<TEvents>,
+  config?: HandleryConfig<TEvents, TConfigExtraFunction>,
+): Handlery<TEvents, TConfigExtraFunction> {
+  const EventHandler = getEventHandlerClass<TEvents, TConfigExtraFunction>(emitter, config);
 
-  const on: OnDecorator<TEvents> = eventName => {
+  const on: OnDecorator<TEvents, TConfigExtraFunction> = eventName => {
     return function (method, context) {
       context.addInitializer(function (this) {
         this.registerEvent(eventName, (data: TEvents[typeof eventName]) => {
-          method(data, {
-            event: {
-              name: eventName,
-              data: data,
+          let contextExtra: unknown = undefined;
+          if (config?.context && config.context.extra) {
+            contextExtra = config.context.extra(eventName, data);
+          }
+
+          const payload = [
+            data,
+            {
+              event: {
+                name: eventName,
+                data: data,
+              },
+              emitter: EventHandler._emitter,
+              extra: contextExtra as ReturnType<NonNullable<TConfigExtraFunction>>,
             },
-            emitter: EventHandler._emitter,
-          });
+          ] as const;
+
+          method(...payload);
         });
       });
     };
   };
 
-  const register: RegisterDecorator<TEvents> = () => {
+  const register: RegisterDecorator<TEvents, TConfigExtraFunction> = () => {
     return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass
@@ -233,7 +282,7 @@ export default function handlery<TEvents extends Events>(emitter: Emitter<TEvent
     };
   };
 
-  const subscribe: SubscribeDecorator<TEvents> = () => {
+  const subscribe: SubscribeDecorator<TEvents, TConfigExtraFunction> = () => {
     return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass
