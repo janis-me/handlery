@@ -23,7 +23,7 @@ export const baseConfig: ConfigArray = tseslint.config(
     },
   },
   {
-    ignores: ['**/node_modules/', '**/coverage/', '**/dist/', '**/.next/'],
+    ignores: ['**/node_modules/', '**/coverage/', '**/dist/', '**/.next/', '**/.vitepress/cache/'],
   },
   {
     rules: {
