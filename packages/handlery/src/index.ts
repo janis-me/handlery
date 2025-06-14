@@ -1,8 +1,8 @@
-import { HandleryConfig } from '#types/config.types';
 import type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/decorator.types';
 import type { Emitter } from '#types/emitter.types';
 import type { EventListener, Events } from '#types/event.types';
-import type { EventHandlerContextExtraFunction } from '#types/handler.types';
+
+import { EventKey } from '../dist/event.types-BW8IqkS5';
 
 export type { Emitter } from '#types/emitter.types';
 export type { EventHandlerContext } from '#types/handler.types';
@@ -16,14 +16,10 @@ export type { EventHandlerContext } from '#types/handler.types';
  * @param emitter The handlery-typed emitter
  * @returns `EventHandler` base class
  */
-function getEventHandlerClass<
-  TEvents extends Events,
-  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
->(emitter: Emitter<TEvents>, config?: HandleryConfig<TEvents, TConfigExtraFunction>) {
+function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<keyof TEvents, TEvents>) {
   class EventHandler {
-    public static _emitter: Emitter<TEvents> = emitter;
+    public static _emitter: Emitter<keyof TEvents, TEvents> = emitter;
     public static _instances = new Map<new () => EventHandler, EventHandler>();
-    public static _config: HandleryConfig<TEvents, TConfigExtraFunction> = config ?? {};
 
     public _listeners: Array<EventListener<TEvents, keyof TEvents>> = [];
 
@@ -150,24 +146,15 @@ function getEventHandlerClass<
  * The `EventHandlerImpl` type exists only to prevent the compiler from showing the 'raw' return type of the `getEventHandlerClass` function.
  * It is used to create a more user-friendly type for the `EventHandler` class.
  */
-export type EventHandlerImpl<
-  TEvents extends Events,
-  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
-> = ReturnType<typeof getEventHandlerClass<TEvents, TConfigExtraFunction>>;
-export type EventHandler<
-  TEvents extends Events,
-  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
-> = EventHandlerImpl<TEvents, TConfigExtraFunction>;
+export type EventHandlerImpl<TEvents extends Events> = ReturnType<typeof getEventHandlerClass<TEvents>>;
+export type EventHandler<TEvents extends Events> = EventHandlerImpl<TEvents>;
 
-export interface Handlery<
-  TEvents extends Events,
-  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
-> {
+export interface Handlery<TEvents extends Events> {
   /**
    * Type representing an EventHandler class that is based on the provided emitter.
    * `extend` it to create your own EventHandler classes!
    */
-  EventHandler: EventHandler<TEvents, TConfigExtraFunction>;
+  EventHandler: EventHandler<TEvents>;
   /**
    * Decorator type for handling events.
    * It allows you to define a method that will be called when the specified event is emitted.
@@ -184,7 +171,7 @@ export interface Handlery<
    * }
    * ```
    */
-  on: OnDecorator<TEvents, TConfigExtraFunction>;
+  on: OnDecorator<TEvents>;
   /**
    * Decorator type for registering an EventHandler class.
    * `Registering` means creating an instance of the class and storing it in `EventHandler`.
@@ -192,14 +179,14 @@ export interface Handlery<
    *
    * As an alternative to `@register`, you can also use `@subscribe` to automatically register and subscribe the instance.
    */
-  register: RegisterDecorator<TEvents, TConfigExtraFunction>;
+  register: RegisterDecorator<TEvents>;
   /**
    * Decorator type for subscribing an EventHandler class.
    * This decorator registers the class and subscribes all handlers to their respective events.
    *
    * This is a shorthand for `@register` followed by calls to `.subscribe()`.
    */
-  subscribe: SubscribeDecorator<TEvents, TConfigExtraFunction>;
+  subscribe: SubscribeDecorator<TEvents>;
 }
 
 /**
@@ -237,23 +224,16 @@ export interface Handlery<
  *}
  */
 export default function handlery<
-  TEvents extends Events,
-  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
->(
-  emitter: Emitter<TEvents>,
-  config?: HandleryConfig<TEvents, TConfigExtraFunction>,
-): Handlery<TEvents, TConfigExtraFunction> {
-  const EventHandler = getEventHandlerClass<TEvents, TConfigExtraFunction>(emitter, config);
+  TKey extends EventKey,
+  TArgType extends 'record' | 'array',
+  TEvents extends Events<TKey, TArgType>,
+>(emitter: Emitter<keyof TEvents, TEvents>): Handlery<TEvents> {
+  const EventHandler = getEventHandlerClass<TEvents>(emitter);
 
-  const on: OnDecorator<TEvents, TConfigExtraFunction> = eventName => {
+  const on: OnDecorator<TEvents> = eventName => {
     return function (method, context) {
       context.addInitializer(function (this) {
         this.registerEvent(eventName, (data: TEvents[typeof eventName]) => {
-          let contextExtra: unknown = undefined;
-          if (config?.context && config.context.extra) {
-            contextExtra = config.context.extra(eventName, data);
-          }
-
           const payload = [
             data,
             {
@@ -262,7 +242,6 @@ export default function handlery<
                 data: data,
               },
               emitter: EventHandler._emitter,
-              extra: contextExtra as ReturnType<NonNullable<TConfigExtraFunction>>,
             },
           ] as const;
 
@@ -272,7 +251,7 @@ export default function handlery<
     };
   };
 
-  const register: RegisterDecorator<TEvents, TConfigExtraFunction> = () => {
+  const register: RegisterDecorator<TEvents> = () => {
     return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass
@@ -282,7 +261,7 @@ export default function handlery<
     };
   };
 
-  const subscribe: SubscribeDecorator<TEvents, TConfigExtraFunction> = () => {
+  const subscribe: SubscribeDecorator<TEvents> = () => {
     return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass

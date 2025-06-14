@@ -11,7 +11,7 @@ export function nodeAdapter<
   TEvents extends Events<string | symbol, 'array'> = TEventMap extends [never]
     ? Events<string | symbol, 'array'>
     : TEventMap,
->(eventEmitter: TEventEmitter): Emitter<TEvents> {
+>(eventEmitter: TEventEmitter): Emitter<keyof TEvents, TEvents> {
   // Keep track of synchronous listeners so we're able to un-register them later
   const synchronousListeners = new Map<
     (data: TEvents[keyof TEvents]) => void | Promise<void>,

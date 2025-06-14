@@ -1,22 +1,15 @@
 import { Emitter } from '#types/emitter.types';
 import type { Events } from '#types/event.types';
 
-export type EventHandlerContextExtraFunction<TEvents extends Events> = (
-  event: keyof TEvents,
-  data: TEvents[keyof TEvents],
-) => unknown;
-
-export interface EventHandlerContext<T extends keyof Events, TExtra = unknown> {
+export interface EventHandlerContext<TEvents extends Events, T extends keyof TEvents> {
   event: {
     name: T;
-    data: Events[T];
+    data: TEvents[T];
   };
-  emitter: Emitter;
-  extra: TExtra;
+  emitter: Emitter<T, TEvents>;
 }
 
-export type EventHandlerMethod<
-  TEvents extends Events,
-  K extends keyof TEvents,
-  TConfigExtraFunction extends EventHandlerContextExtraFunction<TEvents> | undefined,
-> = (data: TEvents[K], context: EventHandlerContext<K, ReturnType<NonNullable<TConfigExtraFunction>>>) => unknown;
+export type EventHandlerMethod<TEvents extends Events, K extends keyof TEvents> = (
+  data: TEvents[K],
+  context: EventHandlerContext<TEvents, K>,
+) => unknown;
