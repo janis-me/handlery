@@ -2,8 +2,6 @@ import type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/
 import type { Emitter } from '#types/emitter.types';
 import type { EventListener, Events } from '#types/event.types';
 
-import { EventKey } from '../dist/event.types-BW8IqkS5';
-
 export type { Emitter } from '#types/emitter.types';
 export type { EventHandlerContext } from '#types/handler.types';
 export type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/decorator.types';
@@ -17,12 +15,12 @@ export type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/
  * @param emitter The handlery-typed emitter
  * @returns `EventHandler` base class
  */
-function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<keyof TEvents, TEvents>) {
+function getEventHandlerClass<TIn extends Events, TOut extends Events = TIn>(emitter: Emitter<TIn, TOut>) {
   class EventHandler {
-    public static _emitter: Emitter<keyof TEvents, TEvents> = emitter;
+    public static _emitter: Emitter<TIn, TOut> = emitter;
     public static _instances = new Map<new () => EventHandler, EventHandler>();
 
-    public _listeners: Array<EventListener<TEvents, keyof TEvents>> = [];
+    public _listeners: Array<EventListener<TOut, keyof TOut>> = [];
 
     /**
      * Instantiates the EventHandler sub-class and registers it in the static `_instances` map.
@@ -45,11 +43,11 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<keyof TEv
      * @param event The event type to listen for
      * @param callback The function to call when the event is emitted
      */
-    public registerEvent<T extends keyof TEvents>(event: T, callback: (data: TEvents[T]) => void) {
+    public registerEvent<T extends keyof TOut>(event: T, callback: (data: TOut[T]) => void) {
       this._listeners.push({
         event,
         // Loosen the type constraint of callback to allow for any function that accepts the event data type
-        callback: callback as (data: TEvents[keyof TEvents]) => void,
+        callback: callback as (data: TOut[keyof TOut]) => void,
       });
     }
 
@@ -98,7 +96,7 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<keyof TEv
       instance._unsubscribeInstance();
     }
 
-    public _registerEvent<T extends keyof TEvents>(event: T, callback: (data: TEvents[T]) => void) {
+    public _registerEvent<T extends keyof TOut>(event: T, callback: (data: TOut[T]) => void) {
       // Ensure the listener is not already registered
       if (this._listeners.some(listener => listener.event === event && listener.callback === callback)) {
         return;
@@ -107,7 +105,7 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<keyof TEv
       this.registerEvent(event, callback);
     }
 
-    public _subscribeListener<T extends keyof TEvents>(event: T, callback: (data: TEvents[T]) => void) {
+    public _subscribeListener<T extends keyof TOut>(event: T, callback: (data: TOut[T]) => void) {
       this._registerEvent(event, callback);
       this._subscribeInstance();
     }
@@ -147,15 +145,17 @@ function getEventHandlerClass<TEvents extends Events>(emitter: Emitter<keyof TEv
  * The `EventHandlerImpl` type exists only to prevent the compiler from showing the 'raw' return type of the `getEventHandlerClass` function.
  * It is used to create a more user-friendly type for the `EventHandler` class.
  */
-export type EventHandlerImpl<TEvents extends Events> = ReturnType<typeof getEventHandlerClass<TEvents>>;
-export type EventHandler<TEvents extends Events> = EventHandlerImpl<TEvents>;
+export type EventHandlerImpl<TIn extends Events, TOut extends Events = TIn> = ReturnType<
+  typeof getEventHandlerClass<TIn, TOut>
+>;
+export type EventHandler<TIn extends Events, TOut extends Events = TIn> = EventHandlerImpl<TIn, TOut>;
 
-export interface Handlery<TEvents extends Events> {
+export interface Handlery<TIn extends Events, TOut extends Events = TIn> {
   /**
    * Type representing an EventHandler class that is based on the provided emitter.
    * `extend` it to create your own EventHandler classes!
    */
-  EventHandler: EventHandler<TEvents>;
+  EventHandler: EventHandler<TIn, TOut>;
   /**
    * Decorator type for handling events.
    * It allows you to define a method that will be called when the specified event is emitted.
@@ -172,7 +172,7 @@ export interface Handlery<TEvents extends Events> {
    * }
    * ```
    */
-  on: OnDecorator<TEvents>;
+  on: OnDecorator<TIn, TOut>;
   /**
    * Decorator type for registering an EventHandler class.
    * `Registering` means creating an instance of the class and storing it in `EventHandler`.
@@ -180,14 +180,14 @@ export interface Handlery<TEvents extends Events> {
    *
    * As an alternative to `@register`, you can also use `@subscribe` to automatically register and subscribe the instance.
    */
-  register: RegisterDecorator<TEvents>;
+  register: RegisterDecorator<TIn, TOut>;
   /**
    * Decorator type for subscribing an EventHandler class.
    * This decorator registers the class and subscribes all handlers to their respective events.
    *
    * This is a shorthand for `@register` followed by calls to `.subscribe()`.
    */
-  subscribe: SubscribeDecorator<TEvents>;
+  subscribe: SubscribeDecorator<TIn, TOut>;
 }
 
 /**
@@ -225,16 +225,17 @@ export interface Handlery<TEvents extends Events> {
  *}
  */
 export default function handlery<
-  TKey extends EventKey,
+  TKey extends keyof TIn,
   TArgType extends 'record' | 'array',
-  TEvents extends Events<TKey, TArgType>,
->(emitter: Emitter<keyof TEvents, TEvents>): Handlery<TEvents> {
-  const EventHandler = getEventHandlerClass<TEvents>(emitter);
+  TIn extends Events<TKey, TArgType>,
+  TOut extends Events<TKey, TArgType> = TIn,
+>(emitter: Emitter<TIn, TOut>): Handlery<TIn, TOut> {
+  const EventHandler = getEventHandlerClass<TIn, TOut>(emitter);
 
-  const on: OnDecorator<TEvents> = eventName => {
+  const on: OnDecorator<TIn, TOut> = eventName => {
     return function (method, context) {
       context.addInitializer(function (this) {
-        this.registerEvent(eventName, (data: TEvents[typeof eventName]) => {
+        this.registerEvent(eventName, (data: TOut[typeof eventName]) => {
           const payload = [
             data,
             {
@@ -252,7 +253,7 @@ export default function handlery<
     };
   };
 
-  const register: RegisterDecorator<TEvents> = () => {
+  const register: RegisterDecorator<TIn, TOut> = () => {
     return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass
@@ -262,7 +263,7 @@ export default function handlery<
     };
   };
 
-  const subscribe: SubscribeDecorator<TEvents> = () => {
+  const subscribe: SubscribeDecorator<TIn, TOut> = () => {
     return function (target, _context) {
       // Register the handler class when it's decorated
       // This calls the static register() method on the EventHandler subclass

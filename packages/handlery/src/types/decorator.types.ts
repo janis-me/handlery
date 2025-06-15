@@ -2,22 +2,24 @@ import { EventHandler } from '#index';
 import { Events } from '#types/event.types';
 import { EventHandlerMethod } from '#types/handler.types';
 
-export type OnDecoratorImpl<TEvents extends Events, TEvent extends keyof TEvents> = <T extends EventHandler<TEvents>>(
-  method: EventHandlerMethod<TEvents, TEvent>,
-  context: ClassMethodDecoratorContext<InstanceType<T>, EventHandlerMethod<TEvents, TEvent>>,
+export type OnDecoratorImpl<TIn extends Events, TOut extends Events, TEvent extends keyof TOut> = <
+  T extends EventHandler<TIn, TOut>,
+>(
+  method: EventHandlerMethod<TIn, TOut, TEvent>,
+  context: ClassMethodDecoratorContext<InstanceType<T>, EventHandlerMethod<TIn, TOut, TEvent>>,
 ) => void;
-export type OnDecorator<TEvents extends Events> = <TEvent extends keyof TEvents>(
+export type OnDecorator<TIn extends Events, TOut extends Events = TIn> = <TEvent extends keyof TOut>(
   eventName: TEvent,
-) => OnDecoratorImpl<TEvents, TEvent>;
+) => OnDecoratorImpl<TIn, TOut, TEvent>;
 
-export type RegisterDecoratorImpl<TEvents extends Events> = <T extends EventHandler<TEvents>>(
+export type RegisterDecoratorImpl<TIn extends Events, TOut extends Events> = <T extends EventHandler<TIn, TOut>>(
   target: T,
-  context: ClassDecoratorContext<EventHandler<TEvents>>,
+  context: ClassDecoratorContext<EventHandler<TIn, TOut>>,
 ) => T;
-export type RegisterDecorator<TEvents extends Events> = () => RegisterDecoratorImpl<TEvents>;
+export type RegisterDecorator<TIn extends Events, TOut extends Events = TIn> = () => RegisterDecoratorImpl<TIn, TOut>;
 
-export type SubscribeDecoratorImpl<TEvents extends Events> = <T extends EventHandler<TEvents>>(
+export type SubscribeDecoratorImpl<TIn extends Events, TOut extends Events = TIn> = <T extends EventHandler<TIn, TOut>>(
   target: T,
-  context: ClassDecoratorContext<EventHandler<TEvents>>,
+  context: ClassDecoratorContext<EventHandler<TIn, TOut>>,
 ) => T;
-export type SubscribeDecorator<TEvents extends Events> = () => SubscribeDecoratorImpl<TEvents>;
+export type SubscribeDecorator<TIn extends Events, TOut extends Events = TIn> = () => SubscribeDecoratorImpl<TIn, TOut>;

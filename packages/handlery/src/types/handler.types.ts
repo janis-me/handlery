@@ -1,15 +1,15 @@
 import { Emitter } from '#types/emitter.types';
 import type { Events } from '#types/event.types';
 
-export interface EventHandlerContext<TEvents extends Events, T extends keyof TEvents> {
+export interface EventHandlerContext<TIn extends Events, TOut extends Events, T extends keyof TOut> {
   event: {
     name: T;
-    data: TEvents[T];
+    data: TOut[T];
   };
-  emitter: Emitter<T, TEvents>;
+  emitter: Emitter<TIn, TOut>;
 }
 
-export type EventHandlerMethod<TEvents extends Events, K extends keyof TEvents> = (
-  data: TEvents[K],
-  context: EventHandlerContext<TEvents, K>,
+export type EventHandlerMethod<TIn extends Events, TOut extends Events, K extends keyof TOut> = (
+  data: TOut[K],
+  context: EventHandlerContext<TIn, TOut, K>,
 ) => unknown;
