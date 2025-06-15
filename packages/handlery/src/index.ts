@@ -6,6 +6,7 @@ import { EventKey } from '../dist/event.types-BW8IqkS5';
 
 export type { Emitter } from '#types/emitter.types';
 export type { EventHandlerContext } from '#types/handler.types';
+export type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/decorator.types';
 
 /**
  * function to receive a typed EventHandler class based on the provided emitter.
