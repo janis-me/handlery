@@ -1,4 +1,4 @@
-import handlery, { type Emitter as HandleryEmitter } from 'handlery';
+import handlery, { EventHandlerContext, type Emitter as HandleryEmitter } from 'handlery';
 
 type BaseEvents = {
   'user.add': { name: string };
@@ -47,15 +47,24 @@ class MyEmitter implements HandleryEmitter<BaseEvents, DerivedEvents> {
         l.listener(derivedData);
       });
   }
+
+  // An extra method that can be called from context!
+  somethingElse() {
+    console.log('hello');
+  }
 }
 
 const myEmitter = new MyEmitter();
 
-const { on, EventHandler } = handlery<keyof DerivedEvents, 'record', BaseEvents, DerivedEvents>(myEmitter);
+const { on, EventHandler } = handlery<BaseEvents, DerivedEvents, MyEmitter>(myEmitter);
 
 class UserHandler extends EventHandler {
   @on('user.add')
-  public handleUserAdd(data: DerivedEvents['user.add']) {
+  public handleUserAdd(
+    data: DerivedEvents['user.add'],
+    ctx: EventHandlerContext<BaseEvents, DerivedEvents, MyEmitter, 'user.add'>,
+  ) {
+    ctx.emitter.somethingElse(); // Call the extra method from context
     console.log('Handled user.add:', data);
   }
 

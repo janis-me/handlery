@@ -15,9 +15,13 @@ export type { OnDecorator, RegisterDecorator, SubscribeDecorator } from '#types/
  * @param emitter The handlery-typed emitter
  * @returns `EventHandler` base class
  */
-function getEventHandlerClass<TIn extends Events, TOut extends Events = TIn>(emitter: Emitter<TIn, TOut>) {
+function getEventHandlerClass<
+  TIn extends Events,
+  TOut extends Events = TIn,
+  TEmitter extends Emitter<TIn, TOut> = Emitter<TIn, TOut>,
+>(emitter: TEmitter) {
   class EventHandler {
-    public static _emitter: Emitter<TIn, TOut> = emitter;
+    public static _emitter: TEmitter = emitter;
     public static _instances = new Map<new () => EventHandler, EventHandler>();
 
     public _listeners: Array<EventListener<TOut, keyof TOut>> = [];
@@ -145,17 +149,27 @@ function getEventHandlerClass<TIn extends Events, TOut extends Events = TIn>(emi
  * The `EventHandlerImpl` type exists only to prevent the compiler from showing the 'raw' return type of the `getEventHandlerClass` function.
  * It is used to create a more user-friendly type for the `EventHandler` class.
  */
-export type EventHandlerImpl<TIn extends Events, TOut extends Events = TIn> = ReturnType<
-  typeof getEventHandlerClass<TIn, TOut>
->;
-export type EventHandler<TIn extends Events, TOut extends Events = TIn> = EventHandlerImpl<TIn, TOut>;
+export type EventHandlerImpl<
+  TIn extends Events,
+  TOut extends Events = TIn,
+  TEmitter extends Emitter<TIn, TOut> = Emitter<TIn, TOut>,
+> = ReturnType<typeof getEventHandlerClass<TIn, TOut, TEmitter>>;
+export type EventHandler<
+  TIn extends Events,
+  TOut extends Events = TIn,
+  TEmitter extends Emitter<TIn, TOut> = Emitter<TIn, TOut>,
+> = EventHandlerImpl<TIn, TOut, TEmitter>;
 
-export interface Handlery<TIn extends Events, TOut extends Events = TIn> {
+export interface Handlery<
+  TIn extends Events,
+  TOut extends Events = TIn,
+  TEmitter extends Emitter<TIn, TOut> = Emitter<TIn, TOut>,
+> {
   /**
    * Type representing an EventHandler class that is based on the provided emitter.
    * `extend` it to create your own EventHandler classes!
    */
-  EventHandler: EventHandler<TIn, TOut>;
+  EventHandler: EventHandler<TIn, TOut, TEmitter>;
   /**
    * Decorator type for handling events.
    * It allows you to define a method that will be called when the specified event is emitted.
@@ -172,7 +186,7 @@ export interface Handlery<TIn extends Events, TOut extends Events = TIn> {
    * }
    * ```
    */
-  on: OnDecorator<TIn, TOut>;
+  on: OnDecorator<TIn, TOut, TEmitter>;
   /**
    * Decorator type for registering an EventHandler class.
    * `Registering` means creating an instance of the class and storing it in `EventHandler`.
@@ -224,15 +238,20 @@ export interface Handlery<TIn extends Events, TOut extends Events = TIn> {
  *   }
  *}
  */
+export default function handlery<TIn extends Events, TOut extends Events>(
+  emitter: Emitter<TIn, TOut>,
+): Handlery<TIn, TOut, Emitter<TIn, TOut>>;
+export default function handlery<TIn extends Events, TOut extends Events, TEmitter extends Emitter<TIn, TOut>>(
+  emitter: TEmitter,
+): Handlery<TIn, TOut, TEmitter>;
 export default function handlery<
-  TKey extends keyof TIn,
-  TArgType extends 'record' | 'array',
-  TIn extends Events<TKey, TArgType>,
-  TOut extends Events<TKey, TArgType> = TIn,
->(emitter: Emitter<TIn, TOut>): Handlery<TIn, TOut> {
-  const EventHandler = getEventHandlerClass<TIn, TOut>(emitter);
+  TIn extends Events,
+  TOut extends Events,
+  TEmitter extends Emitter<TIn, TOut> = Emitter<TIn, TOut>,
+>(emitter: TEmitter): Handlery<TIn, TOut, TEmitter> {
+  const EventHandler = getEventHandlerClass<TIn, TOut, TEmitter>(emitter);
 
-  const on: OnDecorator<TIn, TOut> = eventName => {
+  const on: OnDecorator<TIn, TOut, TEmitter> = eventName => {
     return function (method, context) {
       context.addInitializer(function (this) {
         this.registerEvent(eventName, (data: TOut[typeof eventName]) => {
